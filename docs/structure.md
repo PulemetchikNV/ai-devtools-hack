@@ -1,3 +1,4 @@
+```
 my-hackathon-project/
 ├── README.md                   # Главный файл с описанием всей системы, схемой и инструкцией по запуску
 ├── docker-compose.yml          # (Опционально) Для локального запуска всех сервисов сразу
@@ -30,3 +31,4 @@ my-hackathon-project/
     ├── architecture.png        # Та самая схема из Mermaid
     ├── user_scenarios.md       # Описание сценариев для демо
     └── tools_config.json       # Конфиг для импорта в Cloud.ru (если понадобится)
+```
