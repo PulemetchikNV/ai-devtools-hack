@@ -1,0 +1,50 @@
+services:
+  main-agent:
+    build:
+      context: ./main-agent
+      dockerfile: Dockerfile
+    container_name: main-agent
+    ports:
+      - "${AGENT_PORT:-10000}:10000"
+    environment:
+      # LLM Configuration
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - LLM_API_BASE=${LLM_API_BASE}
+      - LLM_API_KEY=${LLM_API_KEY}
+      # Agent Configuration
+      - AGENT_NAME=${AGENT_NAME:-Main Agent}
+      - AGENT_DESCRIPTION=${AGENT_DESCRIPTION:-AI Assistant Agent}
+      - AGENT_VERSION=${AGENT_VERSION:-v1.0.0}
+      - AGENT_SYSTEM_PROMPT=${AGENT_SYSTEM_PROMPT:-Ты полезный AI-ассистент. Используй доступные инструменты для решения задач пользователя.}
+      # A2A Configuration
+      - URL_AGENT=http://main-agent:10000
+      - PORT=10000
+      # MCP Configuration (optional)
+      - MCP_URL=${MCP_URL:-}
+      # Telemetry (optional)
+      - PHOENIX_ENDPOINT=${PHOENIX_ENDPOINT:-}
+      - ENABLE_PHOENIX=${ENABLE_PHOENIX:-false}
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:10000/.well-known/agent.json"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s
+    restart: unless-stopped
+
+  telegram-bot:
+    build:
+      context: ./telegram-bot
+      dockerfile: Dockerfile
+    container_name: telegram-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ADMIN_CHAT_ID=${ADMIN_CHAT_ID:-1234567890}
+      # A2A Agent URL - points to main-agent service
+      - A2A_AGENT_URL=http://main-agent:10000
+    depends_on:
+      - main-agent
+        # condition: service_healthy
+    restart: unless-stopped

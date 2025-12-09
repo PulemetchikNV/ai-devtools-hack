@@ -11,10 +11,10 @@ logging.basicConfig(
 
 class Settings(BaseSettings):
     telegram_bot_token: str
-    ai_api_base_url: str
-    ai_api_key: str
-    ai_model: str = "gpt-oss-120b"
     admin_chat_id: Optional[int] = None
+
+    # A2A Agent configuration
+    a2a_agent_url: Optional[str] = None  # URL агента (например: http://localhost:10000)
 
     model_config = SettingsConfigDict(
         env_file='.env',
