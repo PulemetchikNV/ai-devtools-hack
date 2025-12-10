@@ -13,7 +13,7 @@ from phoenix.otel import register
 from agent import create_langchain_agent
 from a2a_wrapper import LangChainA2AWrapper
 from agent_task_manager import LangChainAgentExecutor
-
+import uvicorn
 
 # Настройка логирования
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -70,7 +70,6 @@ def main():
             http_handler=request_handler
         )
         
-        import uvicorn
         port = int(os.getenv("PORT", 10000))
         logger.info(f"Starting LangChain Agent server on port {port}")
         uvicorn.run(server.build(), host='0.0.0.0', port=port)

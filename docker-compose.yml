@@ -43,7 +43,7 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - ADMIN_CHAT_ID=${ADMIN_CHAT_ID:-1234567890}
       # A2A Agent URL - points to main-agent service
-      - A2A_AGENT_URL=http://main-agent:10000
+      - A2A_AGENT_URL=${A2A_AGENT_URL:-http://main-agent:10000}
     depends_on:
       - main-agent
         # condition: service_healthy

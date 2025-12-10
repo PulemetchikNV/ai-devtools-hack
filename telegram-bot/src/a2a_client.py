@@ -95,6 +95,8 @@ class AgentClient:
             result = response.root.result
             new_context_id = None
 
+            print(f"MSG RESULT: {result}")
+
             if result:
                 # Сохраняем context_id для следующих запросов (snake_case в Pydantic модели)
                 new_context_id = getattr(result, 'context_id', None)
@@ -104,13 +106,12 @@ class AgentClient:
                 if hasattr(result, 'history') and result.history:
                     for msg in reversed(result.history):
                         if msg.role == 'agent' and msg.parts:
-                            texts = []
-                            for part in msg.parts:
-                                root = part.root
-                                if hasattr(root, 'text') and root.text and root.text.strip():
-                                    texts.append(root.text)
-                            if texts:
-                                return "\n".join(texts), new_context_id
+                            return self.parts_to_text(msg.parts), new_context_id
+
+                if(hasattr(result, 'artifacts') and result.artifacts):
+                    for artifact in result.artifacts:
+                        if hasattr(artifact, 'parts') and artifact.parts:
+                            return self.parts_to_text(artifact.parts), new_context_id
 
             return "Агент не вернул ответ", new_context_id
 
@@ -182,6 +183,16 @@ class AgentClient:
             await self._http_client.aclose()
             self._http_client = None
             self._client = None
+
+    def parts_to_text(self, parts: list[TextPart]) -> str:
+        """Преобразует список частей в текст."""
+        texts = []
+        for part in parts:
+            root = part.root
+            if hasattr(root, 'text') and root.text and root.text.strip():
+                texts.append(root.text)
+        if texts:
+            return "\n".join(texts)
 
 
 # Глобальный экземпляр клиента
