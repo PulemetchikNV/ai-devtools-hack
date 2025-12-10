@@ -1,0 +1,24 @@
+// Prisma Schema for MCP GitLab Server
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Chat configuration - stores GitLab credentials for each Telegram chat
+model ChatConfig {
+  id            Int      @id @default(autoincrement())
+  chatId        String   @unique @map("chat_id") /// Telegram chat ID
+  gitlabUrl     String   @map("gitlab_url") /// GitLab instance URL (e.g., https://gitlab.com)
+  accessToken   String   @map("access_token") /// Encrypted GitLab personal access token
+  watchedRepos  String[] @default([]) @map("watched_repos") /// List of repo paths to watch (e.g., ["group/project"])
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("chat_configs")
+}
+
