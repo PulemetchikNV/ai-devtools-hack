@@ -1,4 +1,4 @@
-"""A2A клиент для общения с main-agent."""
+"""A2A клиент для общения с gitlab-agent."""
 import logging
 from typing import Optional
 from uuid import uuid4
