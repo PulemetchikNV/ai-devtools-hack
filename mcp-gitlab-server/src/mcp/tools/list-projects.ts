@@ -1,14 +1,14 @@
 import { gitlabService } from '../../services/gitlab.service.js';
+import { chatConfigService } from '../../services/chat-config.service.js';
 import { ListProjectsInputSchema, listProjectsJsonSchema } from './schemas.js';
 import { logger } from '../../utils/logger.js';
-import { config } from '../../config.js';
 
 export const listProjectsTool = {
   name: 'list_projects',
   description: 
-    'List GitLab projects accessible with the provided credentials. ' +
-    'Returns project names, URLs, descriptions, visibility, and statistics. ' +
-    'Use this tool to discover available repositories in a GitLab instance.',
+    'List GitLab projects for a registered user. ' +
+    'User must be registered first using register_user tool. ' +
+    'Returns project names, URLs, descriptions, visibility, and statistics.',
   inputSchema: listProjectsJsonSchema,
   
   async handler(args: unknown) {
@@ -19,46 +19,61 @@ export const listProjectsTool = {
       return {
         content: [{
           type: 'text' as const,
-          text: `Invalid input: ${parseResult.error.message}`,
+          text: JSON.stringify({
+            success: false,
+            error: 'INVALID_INPUT',
+            message: `Invalid input: ${parseResult.error.message}`,
+          }),
         }],
         isError: true,
       };
     }
     
-    const input = parseResult.data;
+    const { chat_id, search, membership, per_page, all } = parseResult.data;
     
-    // Use defaults from env if not provided
-    const gitlabUrl = input.gitlab_url || config.defaultGitlabUrl;
-    const accessToken = input.access_token || config.defaultGitlabToken;
-    
-    // Check if we have credentials
-    if (!gitlabUrl || !accessToken) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: 'Error: GitLab URL and access token are required. Either provide them as parameters or set DEFAULT_GITLAB_URL and DEFAULT_GITLAB_TOKEN in environment variables.',
-        }],
-        isError: true,
-      };
-    }
+    logger.debug('ListProjects', `Listing projects for user ${chat_id}`);
     
     try {
+      // Get user credentials from database
+      const config = await chatConfigService.getWithCredentials(chat_id);
+      
+      if (!config) {
+        logger.warn('ListProjects', `User ${chat_id} not registered`);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: JSON.stringify({
+              success: false,
+              error: 'USER_NOT_REGISTERED',
+              message: `User with chat_id ${chat_id} is not registered. Please register first using register_user tool with gitlab_url and access_token.`,
+            }),
+          }],
+          isError: true,
+        };
+      }
+      
+      const { gitlabUrl, accessToken } = config;
+      
+      logger.debug('ListProjects', `Fetching projects from ${gitlabUrl} for user ${chat_id}`);
+      
       // Fetch projects from GitLab
       const projects = await gitlabService.listProjects(
         gitlabUrl,
         accessToken,
         {
-          search: input.search,
-          membership: input.membership,
-          perPage: input.per_page,
-          all: input.all,
+          search: search || undefined,
+          membership,
+          perPage: per_page,
+          all,
         }
       );
       
       // Format response
       const response = {
+        success: true,
         total: projects.length,
-        gitlab_instance: gitlabUrl,
+        chat_id,
+        gitlab_url: gitlabUrl,
         projects: projects.map(p => ({
           id: p.id,
           name: p.name,
@@ -73,6 +88,8 @@ export const listProjectsTool = {
         })),
       };
       
+      logger.info('ListProjects', `Found ${projects.length} projects for user ${chat_id}`);
+      
       return {
         content: [{
           type: 'text' as const,
@@ -83,7 +100,7 @@ export const listProjectsTool = {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      logger.error('GitLab', `Failed to fetch projects from ${gitlabUrl}`, {
+      logger.error('ListProjects', `Failed to fetch projects for user ${chat_id}`, {
         error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
       });
@@ -91,11 +108,14 @@ export const listProjectsTool = {
       return {
         content: [{
           type: 'text' as const,
-          text: `Error fetching projects from GitLab: ${errorMessage}`,
+          text: JSON.stringify({
+            success: false,
+            error: 'GITLAB_ERROR',
+            message: `Error fetching projects from GitLab: ${errorMessage}`,
+          }),
         }],
         isError: true,
       };
     }
   },
 };
-
