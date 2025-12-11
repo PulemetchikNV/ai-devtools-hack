@@ -70,19 +70,23 @@ class LangChainA2AWrapper:
             
             # Собираем части ответа
             full_response = ""
-            
+            sent_any_content = False  # Отслеживаем, отправляли ли мы контент
+
             # LangChain AgentExecutor поддерживает astream
             async for chunk in self.agent_executor.astream({
                 "input": query,
                 "chat_history": chat_history
             }):
+                logger.debug(f"Received chunk: {chunk.keys() if isinstance(chunk, dict) else type(chunk)}")
+
                 # Извлекаем текст из чанков
                 if "output" in chunk:
                     output = chunk["output"]
                     if output and output != full_response:
                         new_part = output[len(full_response):]
                         full_response = output
-                        
+
+                        logger.info(f"Yielding content chunk: length={len(new_part)}")
                         yield {
                             "is_task_complete": False,
                             "require_user_input": False,
@@ -90,7 +94,8 @@ class LangChainA2AWrapper:
                             "is_error": False,
                             "is_event": False
                         }
-                
+                        sent_any_content = True
+
                 # Можем отправлять промежуточные события о вызове инструментов
                 if "intermediate_steps" in chunk:
                     for step in chunk["intermediate_steps"]:
@@ -103,16 +108,23 @@ class LangChainA2AWrapper:
                                 "is_error": False,
                                 "is_event": True
                             }
-            
+
             # Обновляем историю
             chat_history.append(("human", query))
             chat_history.append(("assistant", full_response))
-            
+
             # Финальный чанк
+            # Если ничего не отправили, отправляем полный ответ; иначе пустую строку
+            final_content = "" if sent_any_content else full_response
+            logger.info(
+                f"Sending final chunk: sent_any_content={sent_any_content}, "
+                f"final_content_length={len(final_content)}, "
+                f"full_response_length={len(full_response)}"
+            )
             yield {
                 "is_task_complete": True,
                 "require_user_input": False,
-                "content": "",
+                "content": final_content,
                 "is_error": False,
                 "is_event": False
             }

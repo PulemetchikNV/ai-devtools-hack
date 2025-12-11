@@ -180,6 +180,8 @@ class MCPClient:
         return tools
 
     async def call_tool(self, tool_name: str, arguments: dict) -> Any:
+        print(f'call_tool TOOL_NAME: {tool_name}')
+        print(f'call_tool ARGUMENTS: {arguments}\n\n')
         """Вызывает инструмент по Streamable HTTP."""
         await self._ensure_initialized()
         req_id = uuid4().hex
@@ -208,24 +210,30 @@ def create_langchain_tool_from_mcp(mcp_client: MCPClient, mcp_tool: dict) -> Too
     def tool_func(**kwargs) -> str:
         """Вызывает MCP инструмент."""
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # Если event loop уже запущен, используем run_in_executor
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            coro = mcp_client.call_tool(tool_name, kwargs)
+
+            if loop and loop.is_running():
+                # Если сейчас уже есть активный loop (например, внутри LangChain),
+                # выполняем корутину в отдельном потоке, чтобы не блокировать его.
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        asyncio.run,
-                        mcp_client.call_tool(tool_name, kwargs)
-                    )
+                    future = executor.submit(asyncio.run, coro)
                     return str(future.result())
             else:
-                return str(asyncio.run(mcp_client.call_tool(tool_name, kwargs)))
+                # Нет активного loop — создаём новый через asyncio.run
+                return str(asyncio.run(coro))
         except Exception as e:
             logger.error(f"Error calling MCP tool {tool_name}: {e}")
             return f"Error: {str(e)}"
 
     # Создаем Pydantic модель из JSON Schema для валидации
     if input_schema.get("properties"):
+        print(f'created STRUCTURED TOOL')
         fields = {}
         for prop_name, prop_schema in input_schema.get("properties", {}).items():
             prop_type = str  # По умолчанию string
@@ -249,6 +257,7 @@ def create_langchain_tool_from_mcp(mcp_client: MCPClient, mcp_tool: dict) -> Too
             args_schema=ArgsModel,
         )
     else:
+        print('created SIMPLE TOOL')
         # Простой tool без аргументов или со строковым input
         return Tool(
             name=tool_name,
@@ -294,8 +303,12 @@ async def get_mcp_tools_async(mcp_urls: Optional[str]) -> List[Tool]:
 def get_mcp_tools(mcp_urls: Optional[str]) -> List[Tool]:
     """Синхронная обёртка для получения MCP tools."""
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
             # Создаём новый event loop в отдельном потоке
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -310,10 +323,19 @@ def get_mcp_tools(mcp_urls: Optional[str]) -> List[Tool]:
 
 def create_langchain_agent(mcp_urls: Optional[str] = None):
     """Создает LangChain агента с инструментами."""
-    
+    raw_model = os.getenv("LLM_MODEL")
+    # Cloud.ru отдает модель вида hosted_vllm/openai/gpt-oss-120b, а endpoint ждет openai/gpt-oss-120b
+    model = raw_model.removeprefix("hosted_vllm/") if raw_model else None
+    if raw_model != model:
+        logger.info(f'create_langchain_agent normalized LLM_MODEL from {raw_model} to {model}')
+    else:
+        logger.info(f'create_langchain_agent LLM_MODEL: {model}')
+    logger.info(f'create_langchain_agent LLM_API_BASE: {os.getenv("LLM_API_BASE")}')
+    logger.info(f'create_langchain_agent LLM_API_KEY: {os.getenv("LLM_API_KEY")}')
+
     # Создаем LLM через LiteLLM для унификации
     llm = ChatOpenAI(
-        model=os.getenv("LLM_MODEL", "gpt-4.1-mini"),
+        model=model,
         base_url=os.getenv("LLM_API_BASE"),
         api_key=os.getenv("LLM_API_KEY"),
         temperature=0.7,

@@ -9,6 +9,7 @@ from src.config import settings
 from src.texts import START_MESSAGE, HELP_MESSAGE
 from src.a2a_client import agent_client
 from src.user_service import get_or_create_user, get_user_context
+from src.utils import split_long_message
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,6 @@ class ConversationStates(StatesGroup):
 
 
 router = Router()
-
 
 @router.message(Command("start"))
 async def start_handler(message: Message, state: FSMContext):
@@ -79,8 +79,16 @@ async def process_user_message_handler(message: Message, state: FSMContext):
                 f"• Контекст пользователя: {user_context}"
             )
 
-        await message.answer(ai_response)
-        logger.info(f"Sent AI response to user {user_id}")
+        # Разбиваем длинные сообщения на части для соблюдения лимита Telegram
+        message_chunks = split_long_message(ai_response)
+
+        if len(message_chunks) > 1:
+            logger.info(f"Splitting response into {len(message_chunks)} messages for user {user_id}")
+
+        for chunk in message_chunks:
+            await message.answer(chunk)
+
+        logger.info(f"Sent AI response to user {user_id} ({len(message_chunks)} message(s))")
 
     except Exception as e:
         logger.error(f"Error processing message for user {user_id}: {e}", exc_info=True)

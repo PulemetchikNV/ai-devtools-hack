@@ -104,15 +104,25 @@ class AgentClient:
 
                 # Ищем последнее НЕпустое сообщение от агента
                 if hasattr(result, 'history') and result.history:
+                    logger.debug(f"History messages count: {len(result.history)}")
                     for msg in reversed(result.history):
+                        logger.debug(f"Message: role={msg.role}, parts_count={len(msg.parts) if msg.parts else 0}")
                         if msg.role == 'agent' and msg.parts:
-                            return self.parts_to_text(msg.parts), new_context_id
+                            text = self.parts_to_text(msg.parts)
+                            if text:  # Проверяем, что текст не пустой
+                                logger.info(f"Found agent message in history, length={len(text)}")
+                                return text, new_context_id
 
                 if(hasattr(result, 'artifacts') and result.artifacts):
+                    logger.debug(f"Artifacts count: {len(result.artifacts)}")
                     for artifact in result.artifacts:
                         if hasattr(artifact, 'parts') and artifact.parts:
-                            return self.parts_to_text(artifact.parts), new_context_id
+                            text = self.parts_to_text(artifact.parts)
+                            if text:  # Проверяем, что текст не пустой
+                                logger.info(f"Found artifact, length={len(text)}")
+                                return text, new_context_id
 
+            logger.warning("Agent returned no content in history or artifacts")
             return "Агент не вернул ответ", new_context_id
 
         except Exception as e:
@@ -186,13 +196,21 @@ class AgentClient:
 
     def parts_to_text(self, parts: list[TextPart]) -> str:
         """Преобразует список частей в текст."""
+        if not parts:
+            logger.debug("parts_to_text: empty parts list")
+            return ""
+
         texts = []
-        for part in parts:
+        for i, part in enumerate(parts):
             root = part.root
             if hasattr(root, 'text') and root.text and root.text.strip():
                 texts.append(root.text)
-        if texts:
-            return "\n".join(texts)
+            else:
+                logger.debug(f"parts_to_text: part {i} has no text or empty text")
+
+        result = "\n".join(texts) if texts else ""
+        logger.debug(f"parts_to_text: extracted {len(texts)} text parts, total length={len(result)}")
+        return result
 
 
 # Глобальный экземпляр клиента
