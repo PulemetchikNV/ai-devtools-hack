@@ -38,7 +38,6 @@ class AgentClient:
                 base_url=settings.a2a_agent_url,
             )
 
-            logger.info(f"Fetching agent card from: {settings.a2a_agent_url}")
             self._agent_card = await resolver.get_agent_card()
             logger.info(f"Successfully fetched agent card: {self._agent_card.name}")
 
@@ -52,15 +51,15 @@ class AgentClient:
     async def send_message(
         self,
         message: str,
-        user_context: dict,
+        user_info: dict,
         context_id: Optional[str] = None,
     ) -> tuple[str, Optional[str]]:
         """
-        Отправляет сообщение агенту с контекстом пользователя.
+        Отправляет сообщение агенту с информацией о пользователе.
 
         Args:
             message: Сообщение от пользователя
-            user_context: Контекст пользователя (данные из БД)
+            user_info: Информация о пользователе (telegram_id, username, first_name, last_name)
             context_id: ID контекста для сохранения истории диалога
 
         Returns:
@@ -68,9 +67,9 @@ class AgentClient:
         """
         client = await self._get_client()
 
-        # Формируем сообщение с контекстом пользователя
-        context_prefix = self._format_user_context(user_context)
-        full_message = f"{context_prefix}\n\nСообщение пользователя: {message}"
+        # Формируем сообщение с информацией о пользователе
+        user_prefix = self._format_user_info(user_info)
+        full_message = f"{user_prefix}\n\n{message}"
 
         # Создаем запрос по формату A2A протокола
         request = SendMessageRequest(
@@ -132,24 +131,24 @@ class AgentClient:
     async def send_message_streaming(
         self,
         message: str,
-        user_context: dict,
-        session_id: Optional[str] = None,
+        user_info: dict,
+        context_id: Optional[str] = None,
     ):
         """
         Отправляет сообщение агенту с потоковым ответом.
 
         Args:
             message: Сообщение от пользователя
-            user_context: Контекст пользователя
-            session_id: ID сессии
+            user_info: Информация о пользователе
+            context_id: ID контекста для сохранения истории диалога
 
         Yields:
             Части ответа от агента
         """
         client = await self._get_client()
 
-        context_prefix = self._format_user_context(user_context)
-        full_message = f"{context_prefix}\n\nСообщение пользователя: {message}"
+        user_prefix = self._format_user_info(user_info)
+        full_message = f"{user_prefix}\n\n{message}"
 
         request = SendMessageRequest(
             id=str(uuid4()),
@@ -157,12 +156,13 @@ class AgentClient:
                 message=Message(
                     role="user",
                     parts=[TextPart(text=full_message)],
-                    messageId=uuid4().hex,
+                    message_id=uuid4().hex,
+                    context_id=context_id,
                 ),
             ),
         )
 
-        logger.info(f"Sending streaming message to agent, session_id={session_id}")
+        logger.info(f"Sending streaming message to agent, context_id={context_id}")
 
         try:
             async for event in client.send_message_streaming(request):
@@ -176,16 +176,20 @@ class AgentClient:
             logger.error(f"Error in streaming message: {e}", exc_info=True)
             raise
 
-    def _format_user_context(self, user_context: dict) -> str:
-        """Форматирует контекст пользователя для передачи агенту."""
-        if not user_context:
-            return "Контекст пользователя: отсутствует"
+    def _format_user_info(self, user_info: dict) -> str:
+        """Форматирует информацию о пользователе для передачи агенту."""
+        if not user_info:
+            return ""
 
-        lines = ["Контекст пользователя:"]
-        for key, value in user_context.items():
-            lines.append(f"- {key}: {value}")
+        parts = []
+        if user_info.get("first_name"):
+            parts.append(f"Имя: {user_info['first_name']}")
+        if user_info.get("last_name"):
+            parts.append(f"Фамилия: {user_info['last_name']}")
+        if user_info.get("username"):
+            parts.append(f"Username: @{user_info['username']}")
 
-        return "\n".join(lines)
+        return f"[Информация о пользователе: {', '.join(parts)}]" if parts else ""
 
     async def close(self):
         """Закрывает HTTP клиент."""
