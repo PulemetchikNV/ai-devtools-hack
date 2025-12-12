@@ -75,6 +75,24 @@ npx prisma db push
 npm run dev
 ```
 
+### Деплой на Cloud.ru / Production
+
+При запуске Docker контейнера схема БД применяется автоматически:
+
+```bash
+# Контейнер при старте выполняет:
+# 1. npx prisma db push - синхронизирует схему БД
+# 2. node dist/index.js - запускает сервер
+```
+
+**Необходимые переменные окружения для контейнера:**
+```bash
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+ENCRYPTION_KEY=your-32-char-encryption-key
+API_KEY=your-api-key
+PORT=3000
+```
+
 ## 🔧 Переменные окружения
 
 | Переменная | Описание | Пример |
@@ -107,38 +125,103 @@ DELETE /api/chats/:chatId/config       # Удалить конфиг
 
 ## 🔨 MCP Tools
 
+### User Management
+
+| Tool | Описание |
+|------|----------|
+| `register_user` | Регистрация пользователя с GitLab credentials |
+| `update_user_credentials` | Обновление credentials пользователя |
+| `get_user_info` | Проверка регистрации пользователя |
+| `unregister_user` | Удаление регистрации пользователя |
+
+### GitLab Operations
+
+| Tool | Описание |
+|------|----------|
+| `list_projects` | Список проектов GitLab |
+| `list_merge_requests` | Список MR (мои, на review, по проекту) |
+| `get_pipeline_status` | Статус CI/CD pipeline проекта |
+
+---
+
+### `register_user`
+
+Регистрирует пользователя с GitLab credentials.
+
+```json
+{
+  "chat_id": "123456789",
+  "gitlab_url": "https://gitlab.com",
+  "access_token": "glpat-xxxx"
+}
+```
+
+---
+
 ### `list_projects`
 
 Получает список проектов из GitLab.
 
-**Input:**
 ```json
 {
-  "gitlab_url": "https://gitlab.com",
-  "access_token": "glpat-xxxx",
+  "chat_id": "123456789",
   "search": "my-project",
   "membership": true,
   "per_page": 20
 }
 ```
 
-**Output:**
+---
+
+### `list_merge_requests` ⭐ NEW
+
+Получает список Merge Requests.
+
 ```json
 {
-  "total": 5,
-  "gitlab_instance": "https://gitlab.com",
-  "projects": [
-    {
-      "id": 123,
-      "name": "my-project",
-      "full_path": "group/my-project",
-      "url": "https://gitlab.com/group/my-project",
-      "description": "Project description",
-      "visibility": "private",
-      "stars": 10,
-      "forks": 2
-    }
-  ]
+  "chat_id": "123456789",
+  "project_path": "group/project",      // опционально
+  "state": "opened",                    // opened, merged, closed, all
+  "scope": "created_by_me",             // created_by_me, assigned_to_me, all
+  "per_page": 20
+}
+```
+
+**Примеры использования:**
+- "Мои открытые MR" → `scope: "created_by_me", state: "opened"`
+- "MR на review" → `scope: "assigned_to_me", state: "opened"`
+- "Все MR в проекте X" → `project_path: "group/x", state: "all"`
+
+---
+
+### `get_pipeline_status` ⭐ NEW
+
+Получает статус последнего pipeline.
+
+```json
+{
+  "chat_id": "123456789",
+  "project_path": "group/project",
+  "branch": "main"                      // опционально, default branch
+}
+```
+
+**Ответ:**
+```json
+{
+  "project_path": "group/project",
+  "branch": "main",
+  "pipeline": {
+    "id": 123,
+    "status": "success",
+    "status_display": "✅ SUCCESS",
+    "duration_display": "5m 32s",
+    "stages": [
+      { "name": "build", "status_display": "✅ success" },
+      { "name": "test", "status_display": "✅ success" },
+      { "name": "deploy", "status_display": "✅ success" }
+    ]
+  }
 }
 ```
 
