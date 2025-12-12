@@ -1,0 +1,157 @@
+{
+  "name": "gitlab-assistant",
+  "description": "GitLab помощник: MCP сервер + LangChain агент + Telegram UI.",
+  "schema_version": "1.0",
+  "tools": [
+    {
+      "name": "register_user",
+      "description": "Сохраняет GitLab URL и персональный токен для указанного chat_id.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string", "description": "Telegram chat ID" },
+          "gitlab_url": { "type": "string", "description": "https://gitlab.example.com" },
+          "access_token": { "type": "string", "description": "GitLab PAT (read_api минимум)" }
+        },
+        "required": ["chat_id", "gitlab_url", "access_token"]
+      }
+    },
+    {
+      "name": "update_user_credentials",
+      "description": "Обновляет GitLab URL/токен для зарегистрированного chat_id.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "gitlab_url": { "type": "string", "description": "Новый GitLab URL", "nullable": true },
+          "access_token": { "type": "string", "description": "Новый PAT", "nullable": true }
+        },
+        "required": ["chat_id"]
+      }
+    },
+    {
+      "name": "get_user_info",
+      "description": "Возвращает сохраненные креды/метаданные пользователя.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" }
+        },
+        "required": ["chat_id"]
+      }
+    },
+    {
+      "name": "unregister_user",
+      "description": "Удаляет сохраненные креды для chat_id.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" }
+        },
+        "required": ["chat_id"]
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "Список проектов пользователя (можно фильтровать/пагинировать).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "search": { "type": "string" },
+          "membership": { "type": "boolean", "default": true },
+          "per_page": { "type": "number", "default": 20, "minimum": 1, "maximum": 100 },
+          "all": { "type": "boolean", "default": false }
+        },
+        "required": ["chat_id"]
+      }
+    },
+    {
+      "name": "list_merge_requests",
+      "description": "Список MR по проекту или всем доступным, с фильтрами.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string", "description": "group/project (опционально)" },
+          "state": { "type": "string", "enum": ["opened", "merged", "closed", "all"], "default": "opened" },
+          "scope": { "type": "string", "enum": ["created_by_me", "assigned_to_me"], "default": "created_by_me" },
+          "per_page": { "type": "number", "default": 20, "minimum": 1, "maximum": 100 }
+        },
+        "required": ["chat_id"]
+      }
+    },
+    {
+      "name": "get_mr_details",
+      "description": "Возвращает детали MR по project_path и IID.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string" },
+          "mr_iid": { "type": "number" }
+        },
+        "required": ["chat_id", "project_path", "mr_iid"]
+      }
+    },
+    {
+      "name": "get_pipeline_status",
+      "description": "Статус последнего (или указанного) пайплайна по проекту/ветке.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string" },
+          "branch": { "type": "string" }
+        },
+        "required": ["chat_id", "project_path"]
+      }
+    },
+    {
+      "name": "retry_pipeline",
+      "description": "Перезапускает пайплайн (если pipeline_id не задан, берется последний).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string" },
+          "pipeline_id": { "type": "number" }
+        },
+        "required": ["chat_id", "project_path"]
+      }
+    },
+    {
+      "name": "list_issues",
+      "description": "Список issues в проекте с фильтрами по состоянию/лейблам/исполнителю.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string" },
+          "state": { "type": "string", "enum": ["opened", "closed", "all"], "default": "opened" },
+          "assignee": { "type": "string" },
+          "labels": { "type": "array", "items": { "type": "string" } },
+          "search": { "type": "string" },
+          "per_page": { "type": "number", "default": 20, "minimum": 1, "maximum": 100 }
+        },
+        "required": ["chat_id", "project_path"]
+      }
+    },
+    {
+      "name": "create_issue",
+      "description": "Создает issue в GitLab проекте (title обязателен, description Markdown).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string" },
+          "project_path": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "labels": { "type": "array", "items": { "type": "string" } },
+          "assignee": { "type": "string", "description": "username" }
+        },
+        "required": ["chat_id", "project_path", "title"]
+      }
+    }
+  ]
+}

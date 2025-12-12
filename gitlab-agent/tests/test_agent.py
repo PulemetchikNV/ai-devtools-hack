@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -72,6 +73,9 @@ class AgentTests(unittest.TestCase):
         self.assertIn("tool-http://two", tool_names)
         self.assertEqual(len(tool_names), 2)
 
+    def test_get_mcp_tools_none_returns_empty(self):
+        self.assertEqual(agent.get_mcp_tools(None), [])
+
     def test_create_langchain_agent_smoke(self):
         fake_llm = object()
         fake_core_agent = object()
@@ -89,6 +93,61 @@ class AgentTests(unittest.TestCase):
         create_agent.assert_called_once()
         executor_cls.assert_called_once()
         chat_cls.assert_called_once()
+
+    def test_create_langchain_agent_normalizes_model_env(self):
+        fake_llm = object()
+        fake_core_agent = object()
+        fake_executor = object()
+
+        with patch.dict("os.environ", {"LLM_MODEL": "hosted_vllm/openai/gpt-oss-120b"}), \
+             patch("agent.ChatOpenAI", return_value=fake_llm) as chat_cls, \
+             patch("agent.get_mcp_tools", return_value=[]) as get_tools, \
+             patch("agent.create_openai_tools_agent", return_value=fake_core_agent) as create_agent, \
+             patch("agent.AgentExecutor", return_value=fake_executor):
+
+            agent.create_langchain_agent(None)
+
+        chat_cls.assert_called_once()
+        _, kwargs = chat_cls.call_args
+        self.assertEqual(kwargs["model"], "openai/gpt-oss-120b")
+        get_tools.assert_called_once_with(None)
+
+    def test_create_langchain_tool_from_mcp_error_returns_string(self):
+        class FailingClient(FakeMCPClient):
+            async def call_tool(self, name, arguments):
+                raise RuntimeError("boom")
+
+        tool = agent.create_langchain_tool_from_mcp(
+            FailingClient(),
+            {
+                "name": "demo",
+                "description": "demo tool",
+                "inputSchema": {},
+            },
+        )
+
+        result = tool.invoke("")
+        self.assertIn("Error", result)
+
+    def test_structured_tool_args_schema_required(self):
+        tool = agent.create_langchain_tool_from_mcp(
+            FakeMCPClient(),
+            {
+                "name": "demo",
+                "description": "demo tool",
+                "inputSchema": {
+                    "properties": {
+                        "count": {"type": "integer", "description": "amount"},
+                        "note": {"type": "string"},
+                    },
+                    "required": ["count"],
+                },
+            },
+        )
+
+        args_model = tool.args_schema
+        self.assertTrue(args_model.model_fields["count"].is_required())
+        self.assertFalse(args_model.model_fields["note"].is_required())
 
 
 if __name__ == "__main__":

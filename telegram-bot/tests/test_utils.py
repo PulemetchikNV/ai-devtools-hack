@@ -59,6 +59,25 @@ class UtilsTests(unittest.TestCase):
         result = client.parts_to_text(parts)
         self.assertEqual(result, "hi\nbye")
 
+    def test_format_user_info_empty(self):
+        client = AgentClient()
+        result = client._format_user_info({})
+        self.assertEqual(result, "")
+
+    def test_parts_to_text_all_empty(self):
+        class DummyRoot:
+            def __init__(self, text):
+                self.text = text
+
+        class DummyPart:
+            def __init__(self, text):
+                self.root = DummyRoot(text)
+
+        client = AgentClient()
+        parts = [DummyPart("   "), DummyPart("")]
+        result = client.parts_to_text(parts)
+        self.assertEqual(result, "")
+
 
 if __name__ == "__main__":
     unittest.main()
