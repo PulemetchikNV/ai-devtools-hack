@@ -1,5 +1,7 @@
 import logging
 from typing import Optional
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,6 +23,14 @@ class Settings(BaseSettings):
         env_file_encoding='utf-8',
         case_sensitive=False
     )
+
+    @field_validator("admin_chat_id", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v):
+        # При отсутствии переменной pydantic может передать пустую строку из .env
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 
 settings = Settings()

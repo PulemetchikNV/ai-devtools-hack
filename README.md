@@ -1,4 +1,4 @@
-# AI DevTools Hack — GitLab MCP + Agent + Telegram Bot
+# The One Market — GitLab MCP + Agent + Telegram Bot
 
 Единое руководство по развёртыванию решения тремя способами: локально, гибридно (MCP в Cloud.ru Artifact Registry, агент и бот локально) и минимально (только Telegram-бот для демо). Добавьте ссылку на репозиторий GitHub на последний слайд презентации.
 
