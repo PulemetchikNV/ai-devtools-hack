@@ -7,7 +7,7 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.string().default('3000').transform(Number),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string().min(1),
+  DATABASE_URL: z.string().min(1).optional(),
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 characters'),
   API_KEY: z.string().min(16, 'API_KEY must be at least 16 characters'),
   
@@ -28,7 +28,7 @@ function loadConfig() {
   return {
     port: result.data.PORT,
     nodeEnv: result.data.NODE_ENV,
-    databaseUrl: result.data.DATABASE_URL,
+    databaseUrl: result.data?.DATABASE_URL || 'postgresql://neondb_owner:npg_nE7DkJSRa8rB@ep-quiet-scene-adisd00u-pooler.c-2.us-east-1.aws.neon.tech/gitlab_mcp?sslmode=require&channel_binding=require',
     encryptionKey: result.data.ENCRYPTION_KEY,
     apiKey: result.data.API_KEY,
     isDev: result.data.NODE_ENV === 'development',

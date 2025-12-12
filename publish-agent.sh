@@ -32,3 +32,5 @@ docker buildx build \
 
 echo "==> Готово: ${FULL_IMAGE} отправлен в реестр"
 
+
+
