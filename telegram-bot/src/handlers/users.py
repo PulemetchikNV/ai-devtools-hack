@@ -2,6 +2,7 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
+from aiogram.utils.text_decorations import markdown_decoration as md
 
 from src.config import settings
 from src.texts import START_MESSAGE, HELP_MESSAGE, RESET_MESSAGE
@@ -81,8 +82,11 @@ async def process_user_message_handler(message: Message):
 
         for chunk in message_chunks:
             try:
+                safe_chunk = md.quote(chunk)
                 # Пытаемся отправить с Markdown и без превью ссылок
-                await message.answer(chunk, parse_mode="Markdown", disable_web_page_preview=True)
+                await message.answer(
+                    safe_chunk, parse_mode="MarkdownV2", disable_web_page_preview=True
+                )
             except Exception as e:
                 logger.warning(f"Failed to send with Markdown, sending as plain text: {e}")
                 # Если не получилось - отправляем как plain text

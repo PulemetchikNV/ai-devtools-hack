@@ -30,7 +30,7 @@ echo "==> Собираю linux/amd64 и пушу..."
 docker buildx build \
   --platform linux/amd64 \
   -t "${FULL_IMAGE}" \
-  "${ROOT_DIR}/mcp-gitlab-server" \
+  "${ROOT_DIR}" \
   --push
 
 echo "==> Готово: ${FULL_IMAGE} отправлен в реестр"

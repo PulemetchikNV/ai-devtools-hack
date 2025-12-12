@@ -188,6 +188,8 @@ class AgentClient:
             parts.append(f"Фамилия: {user_info['last_name']}")
         if user_info.get("username"):
             parts.append(f"Username: @{user_info['username']}")
+        if user_info.get("telegram_id"):
+            parts.append(f"Telegram ID: {user_info['telegram_id']}")
 
         return f"[Информация о пользователе: {', '.join(parts)}]" if parts else ""
 

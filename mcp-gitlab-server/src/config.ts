@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
-import { AGENT_NAMES } from './const';
+import { AGENT_NAMES } from './const.js';
 
 // Load .env file
 dotenv.config();
@@ -30,7 +30,7 @@ function loadConfig() {
   return {
     port: result.data.PORT,
     nodeEnv: result.data.NODE_ENV,
-    databaseUrl: result.data?.DATABASE_URL || 'postgresql://neondb_owner:npg_nE7DkJSRa8rB@ep-quiet-scene-adisd00u-pooler.c-2.us-east-1.aws.neon.tech/gitlab_mcp?sslmode=require&channel_binding=require',
+    databaseUrl: result.data?.DATABASE_URL,
     encryptionKey: result.data.ENCRYPTION_KEY,
     apiKey: result.data.API_KEY,
     isDev: result.data.NODE_ENV === 'development',

@@ -43,6 +43,21 @@ uv sync
 uv run python -m telegram_bot
 ```
 
+### Running Tests
+
+```bash
+# Agent tests
+cd base-agent
+uv run python -m pytest tests/
+
+# Bot tests
+cd telegram-bot
+uv run python -m pytest tests/
+
+# Single test file
+uv run python -m pytest tests/test_agent.py -v
+```
+
 ### Docker Compose
 
 ```bash
@@ -57,10 +72,10 @@ docker compose -f docker-compose.yml up -d
 
 ```bash
 # MCP server to Artifact Registry
-REGISTRY=mcp-gitlab-server.cr.cloud.ru IMAGE_NAME=mcp-gitlab-server TAG=latest ./publish-mcp-gitlab-server.sh
+cd mcp-gitlab-server && ./publish-mcp-server.sh
 
 # Agent
-REGISTRY=base-agent.cr.cloud.ru IMAGE_NAME=base-agent TAG=latest ./publish-agent.sh
+cd base-agent && ./publish-agent.sh
 ```
 
 ### MCP Server Scripts
@@ -87,19 +102,26 @@ User → Telegram Bot → (A2A HTTP) → base-agent → (MCP JSON-RPC/SSE) → m
 
 - `src/index.ts` — Express server entry, mounts `/api` (REST) and `/mcp` (MCP) routers
 - `src/mcp/server.ts` — MCP server setup with StreamableHTTPServerTransport
-- `src/mcp/tools/` — MCP tool implementations (register_user, list_projects, list_merge_requests, get_mr_details, get_pipeline_status, retry_pipeline, list_issues, create_issue)
+- `src/mcp/tools/index.ts` — Tool registry; switches tools based on `AGENT_NAME` env var
+- `src/mcp/tools/gitlab/` — GitLab tools (register_user, list_projects, list_merge_requests, get_mr_details, get_pipeline_status, retry_pipeline, list_issues, create_issue)
+- `src/mcp/tools/code-review/` — Code review tools (review_patch, suggest_tests)
 - `src/services/gitlab.service.ts` — GitLab API wrapper using @gitbeaker/rest
 - `src/services/chat-config.service.ts` — Chat config CRUD with encrypted tokens
 - `prisma/schema.prisma` — ChatConfig model for per-chat GitLab credentials
+
+**Agent modes**: Set `AGENT_NAME=GitLab` for GitLab tools or `AGENT_NAME=Code Review` for code review tools.
 
 ### base-agent (Python)
 
 - `src/start_a2a.py` — Entry point, creates A2A server with uvicorn
 - `src/agent.py` — LangChain AgentExecutor with MCP client that converts MCP tools to LangChain Tools
+- `src/mcp_client.py` — HTTP+SSE client for MCP protocol
 - `src/a2a_wrapper.py` — Wraps LangChain agent for A2A protocol (streaming support)
 - `src/agent_task_manager.py` — A2A executor integration
 
-Key pattern: `MCPClient` class connects to MCP servers via Streamable HTTP (JSON-RPC + SSE), fetches tool list, and creates LangChain `StructuredTool` wrappers dynamically from JSON Schema.
+Key pattern: `create_langchain_tool_from_mcp()` in `agent.py` dynamically creates LangChain `StructuredTool` wrappers from MCP tool JSON Schema definitions. The `MCPClient` connects via Streamable HTTP (JSON-RPC + SSE).
+
+Note: `LLM_MODEL` env var is normalized — `hosted_vllm/` prefix is stripped automatically.
 
 ### telegram-bot (Python)
 
@@ -117,6 +139,7 @@ Key pattern: `MCPClient` class connects to MCP servers via Streamable HTTP (JSON
 | MCP | `DATABASE_URL` | PostgreSQL connection string |
 | MCP | `ENCRYPTION_KEY` | 32+ byte hex for token encryption |
 | MCP | `API_KEY` | REST API authentication |
+| MCP | `AGENT_NAME` | `GitLab` or `Code Review` (determines tool set) |
 | Agent | `LLM_MODEL`, `LLM_API_BASE`, `LLM_API_KEY` | LLM configuration |
 | Agent | `MCP_URL` | Comma-separated MCP server URLs |
 | Agent | `AGENT_SYSTEM_PROMPT` | System prompt for agent |
@@ -140,3 +163,11 @@ curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
+
+## Cloud.ru Deployment
+
+See `docs/cloudru-integration.md` for full deployment guide including:
+- Publishing images to Artifact Registry
+- Creating MCP servers in Cloud.ru UI
+- Setting up agent systems (orchestrator pattern)
+- System prompts for GitLab and Code Review agents
