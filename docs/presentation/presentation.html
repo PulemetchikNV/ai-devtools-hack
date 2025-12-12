@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud.ru Deploy Agent - Final Pitch</title>
+    <title>The One GitLab Reviewer - The One Market</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
@@ -108,10 +108,10 @@
         <div class="slide active" id="slide-1">
             <div class="text-center z-10">
                 <div class="mb-6 inline-block p-4 border border-cloud-green rounded-lg bg-cloud-green/10 animate-pulse">
-                    <span class="font-mono text-cloud-green">CLOUD.RU EVOLUTION // HACKATHON 2025</span>
+                    <span class="font-mono text-cloud-green">MCP FOR BUSINESS AI TRANSFORMATION // THE ONE MARKET</span>
                 </div>
                 <h1 class="text-6xl md:text-8xl font-cyber font-bold mb-4 text-white neon-text tracking-wider">
-                    GITLAB <span class="text-cloud-green">ASSISTANT</span>
+                    THE ONE <span class="text-cloud-green">GITLAB REVIEWER</span>
                 </h1>
                 <p class="text-xl md:text-2xl text-gray-400 font-mono mt-4">
                     MR, пайплайны, code review — в одном чате Telegram.
@@ -498,7 +498,7 @@
                 <!-- Demo URLs -->
                 <div class="flex gap-4 text-sm">
                     <div class="bg-black/50 px-4 py-2 rounded border border-gray-700">
-                        <span class="text-gray-500">Bot:</span> <span class="text-cloud-green">@gitlab_assistant_bot</span>
+                        <span class="text-gray-500">Bot:</span> <span class="text-cloud-green">@test123mcp123bot</span>
                     </div>
                     <div class="bg-black/50 px-4 py-2 rounded border border-gray-700">
                         <span class="text-gray-500">MCP:</span> <span class="text-cloud-green">http://localhost:3000/mcp</span>
@@ -729,19 +729,103 @@
             </div>
         </div>
 
-        <!-- SLIDE 11: Call to Action -->
+        <!-- SLIDE 11: Roadmap / Future Plans -->
+        <div class="slide" id="slide-roadmap">
+            <h2 class="text-4xl font-cyber mb-2 text-white">ROADMAP</h2>
+            <p class="text-gray-400 font-mono mb-6">Планы развития платформы</p>
+
+            <div class="w-full max-w-6xl grid grid-cols-3 grid-rows-2 gap-4 h-[65vh]">
+                <!-- Large card: Allure + Tests -->
+                <div class="row-span-1 col-span-1 glass-panel rounded-xl p-5 border border-purple-500/40 flex flex-col">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500 flex items-center justify-center">
+                            <i data-lucide="test-tube-2" class="text-purple-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Allure + Tests</h3>
+                    </div>
+                    <p class="text-sm text-gray-300 flex-1">Агент с доступом к Allure-отчётам и тестам по хуку. Автоматический анализ: что сломалось, какие тесты упали, регрессии.</p>
+                    <div class="mt-3 text-xs font-mono text-purple-400 bg-purple-500/10 px-2 py-1 rounded inline-block">MCP: allure-mcp</div>
+                </div>
+
+                <!-- Wide card: Audit Platform -->
+                <div class="row-span-1 col-span-2 glass-panel rounded-xl p-5 border border-cloud-green/40 flex flex-col">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-cloud-green/20 border border-cloud-green flex items-center justify-center">
+                            <i data-lucide="scroll-text" class="text-cloud-green w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Audit Platform</h3>
+                        <span class="text-xs bg-cloud-green/20 text-cloud-green px-2 py-1 rounded ml-auto">Business Growth</span>
+                    </div>
+                    <p class="text-sm text-gray-300 flex-1">История действий агента → экспорт результатов → автодокументация. Вырастает в <span class="text-cloud-green font-bold">услугу аудита</span>: платформа где агенты ведут полный лог, compliance-ready отчёты.</p>
+                    <div class="flex gap-2 mt-3">
+                        <span class="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">audit-log</span>
+                        <span class="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">export-api</span>
+                        <span class="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">compliance</span>
+                    </div>
+                </div>
+
+                <!-- Human-in-the-loop -->
+                <div class="row-span-1 col-span-1 glass-panel rounded-xl p-5 border border-orange-500/40 flex flex-col">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-orange-500/20 border border-orange-500 flex items-center justify-center">
+                            <i data-lucide="shield-alert" class="text-orange-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Human-in-the-Loop</h3>
+                    </div>
+                    <p class="text-sm text-gray-300 flex-1"><span class="text-orange-400">Проблема:</span> LLM имеет слишком много доступов. <span class="text-cloud-green">Решение:</span> апрув критичных действий человеком.</p>
+                    <p class="text-xs text-gray-500 mt-2">Человеческий фактор не уберём из бизнеса — и не должны.</p>
+                </div>
+
+                <!-- Jira Agent -->
+                <div class="row-span-1 col-span-1 glass-panel rounded-xl p-5 border border-blue-500/40 flex flex-col">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500 flex items-center justify-center">
+                            <i data-lucide="ticket" class="text-blue-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Jira Agent</h3>
+                    </div>
+                    <p class="text-sm text-gray-300 flex-1">Анализ соответствия MR тикету в Jira. Автопроверка scope, acceptance criteria, связанных задач.</p>
+                    <div class="mt-3 text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-1 rounded inline-block">MCP: jira-mcp</div>
+                </div>
+
+                <!-- Small cards row -->
+                <div class="row-span-1 col-span-1 glass-panel rounded-xl p-5 border border-gray-700 flex flex-col">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-gray-800 border border-gray-600 flex items-center justify-center">
+                            <i data-lucide="settings" class="text-gray-400 w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Repo Config</h3>
+                    </div>
+                    <p class="text-sm text-gray-300 flex-1">Настройка репозитория через бота: webhooks, branch protection, CI templates.</p>
+                </div>
+
+                <!-- Secret Manager -->
+                <div class="row-span-1 col-span-1 glass-panel rounded-xl p-4 border border-red-500/40 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-red-500/20 border border-red-500 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="key-round" class="text-red-400 w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Secret Manager</h3>
+                        <p class="text-sm text-gray-400">Интеграция с Cloud.ru Secret Manager для безопасного хранения токенов</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: Call to Action -->
         <div class="slide" id="slide-12">
             <div class="text-center z-10">
-                <h2 class="text-5xl md:text-7xl font-cyber font-bold mb-4 neon-text text-white">GITLAB <span class="text-cloud-green">ASSISTANT</span></h2>
+                <h2 class="text-5xl md:text-7xl font-cyber font-bold mb-4 neon-text text-white">THE ONE <span class="text-cloud-green">GITLAB REVIEWER</span></h2>
                 <p class="text-xl text-gray-400 font-mono mb-6">MR, пайплайны, code review — в одном чате</p>
 
                 <div class="flex flex-col md:flex-row items-center justify-center gap-12">
                     <!-- GitHub QR Code -->
-                    <div class="flex flex-col items-center gap-3">
+                    <div class="flex flex-col items-center gap-2">
                         <div class="p-4 bg-black rounded-2xl border-2 border-cloud-green/50 shadow-[0_0_40px_rgba(0,200,83,0.4)]">
                             <img src="qr-code.png" alt="GitHub QR" class="w-56 h-56 rounded-xl">
                         </div>
                         <p class="text-sm text-cloud-green font-mono font-bold">GitHub Repo</p>
+                        <p class="text-xs text-gray-500 font-mono">github.com/PulemetchikNV/ai-devtools-hack</p>
                     </div>
 
                     <!-- Checklist -->
@@ -755,11 +839,12 @@
                     </div>
 
                     <!-- Telegram QR Code -->
-                    <div class="flex flex-col items-center gap-3">
+                    <div class="flex flex-col items-center gap-2">
                         <div class="p-4 bg-black rounded-2xl border-2 border-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.4)]">
                             <img src="qr-telegram.png" alt="Telegram QR" class="w-56 h-56 rounded-xl">
                         </div>
                         <p class="text-sm text-blue-400 font-mono font-bold">Telegram Bot</p>
+                        <p class="text-xs text-gray-500 font-mono">t.me/test123mcp123bot</p>
                     </div>
                 </div>
             </div>
@@ -772,7 +857,7 @@
 
         // UPDATED SPEECH NOTES
         const notes = [
-            "Привет! Представляем GitLab Assistant — AI-помощник для разработчиков. MR, пайплайны, code review — всё в одном Telegram-чате. Построен на A2A и MCP протоколах Cloud.ru Evolution.",
+            "Привет! Команда The One Market представляет The One GitLab Reviewer — AI-помощник для разработчиков в рамках трека MCP for Business AI Transformation. MR, пайплайны, code review — всё в одном Telegram-чате.",
             "Разработчики тратят ~30 минут в день на переключение между GitLab, Slack, IDE. Тимлиды отвлекаются на рутинные вопросы типа 'какой статус MR?'. MR висят без ревью, пайплайны падают и никто не замечает — релизы тормозятся.",
             "Наше решение: всё в одном Telegram-чате. Спросил 'покажи мои MR' — получил список. Сказал 'перезапусти пайплайн' — перезапустил. AI сам выбирает нужный инструмент.",
             "Архитектура: Telegram Bot → A2A HTTP → LangChain Agent → MCP SSE → GitLab API. Три модульных компонента: telegram-bot на aiogram, base-agent на LangChain, mcp-gitlab-server на TypeScript + Prisma.",
@@ -782,11 +867,12 @@
             "Критерии оценки: Бизнес (50%) — решаем реальную проблему, экономия 30 мин/день, live demo работает, потенциал — 100K+ компаний с GitLab. Техника (50%) — 11 MCP tools, валидация, тесты, A2A + MCP ready.",
             "Бизнес-ценность: экономия 2.5 часа/неделю на разработчика, -80% отвлечений для тимлида, +20% к скорости релизов за счёт быстрого ревью и retry пайплайнов.",
             "Evolution AI Agents Ready: A2A SDK 0.3.4, MCP SDK 1.0.0, agent.json, tools.json, Docker images для linux/amd64, env.example, compose файлы, publish scripts для Artifact Registry.",
-            "Итого: 11 MCP Tools, A2A + MCP Protocol, Evolution Ready, Live Demo работает. Ссылки на GitHub и бота на экране. Спасибо!"
+            "Roadmap: Allure-агент для анализа тестов, Audit Platform как бизнес-направление — compliance-отчёты и экспорт. Human-in-the-loop для критичных действий. Jira-агент для связки MR с тикетами. Конфигурация репо через бота. Интеграция с Cloud.ru Secret Manager.",
+            "Итого: The One GitLab Reviewer — 11 MCP Tools, A2A + MCP Protocol, Evolution Ready, Live Demo работает. Команда The One Market. Ссылки на GitHub и бота на экране. Спасибо!"
         ];
 
         let currentSlide = 0;
-        const totalSlides = 11;
+        const totalSlides = 12;
         const slides = document.querySelectorAll('.slide');
 
         function showSlide(index) {
