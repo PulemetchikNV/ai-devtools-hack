@@ -1,6 +1,6 @@
 # The One Market — GitLab MCP + Agent + Telegram Bot
 
-Единое руководство по развёртыванию решения тремя способами: локально, гибридно (MCP в Cloud.ru Artifact Registry, агент и бот локально) и минимально (только Telegram-бот для демо). Добавьте ссылку на репозиторий GitHub на последний слайд презентации.
+Единое руководство по развёртыванию решения тремя способами: локально, гибридно (MCP в Cloud.ru Artifact Registry, агент и бот локально) и минимально (только Telegram-бот для демо). Добавьте ссылку на репозиторий GitHub на последний слайд презентации. Для полной схемы с двумя MCP (GitLab + Code Review) и агентной системой в Cloud.ru смотрите `docs/cloudru-integration.md`.
 
 ## Состав решения
 - `mcp-gitlab-server` — MCP/REST сервер для GitLab, Prisma + Postgres.
@@ -12,7 +12,7 @@
 
 ## Предварительно
 - Docker + Docker Compose, docker buildx.
-- Node.js 18+ для MCP (если запускаете без контейнера).
+- Node.js 20+ для MCP (если запускаете без контейнера).
 - Python 3.12+ / uv или pip для агента и бота (если без контейнера).
 - Доступ к Cloud.ru Artifact Registry (логин/пароль или токен).
 - GitLab PAT с нужными правами (api/read_api/read_user).
@@ -24,6 +24,8 @@
 | MCP | `DATABASE_URL` | Строка подключения Postgres |
 | MCP | `ENCRYPTION_KEY` | 32+ байт hex для шифрования токенов |
 | MCP | `API_KEY` | API-ключ для REST бэкенда (бот) |
+| MCP | `AGENT_NAME` | `GitLab` или `Code Review` — задаёт набор тулов |
+| MCP | `DEFAULT_GITLAB_URL`, `DEFAULT_GITLAB_TOKEN` | Необязательные дефолтные значения для тестов |
 | Агент | `LLM_MODEL`, `LLM_API_BASE`, `LLM_API_KEY` | Настройки LLM |
 | Агент | `MCP_URL` | URL MCP (http://mcp-gitlab-server:3000/mcp) |
 | Агент | `AGENT_NAME`, `AGENT_DESCRIPTION`, `AGENT_VERSION` | Метаданные агента |
@@ -67,6 +69,13 @@ docker compose -f docker-compose.mcp.yml \
 docker compose -f docker-compose.yml up -d
 ```
 
+## Облако Cloud.ru: два MCP + два агента + оркестратор
+1) Опубликуйте образы в Artifact Registry (см. ниже). Один образ MCP работает в двух режимах через `AGENT_NAME` (`GitLab` и `Code Review`).
+2) Создайте в UI два MCP-сервера на одном образе: `gitlab-mcp` (AGENT_NAME=GitLab) и `code-review-mcp` (AGENT_NAME=Code Review).
+3) Создайте два агента на образе `base-agent`, каждому подключите свой MCP и задайте соответствующий системный промпт.
+4) Соберите агентную систему (оркестратор) из двух агентов; её URL подставьте в `A2A_AGENT_URL` бота.
+Детальные промпты и чек-листы — в `docs/cloudru-integration.md`.
+
 ## Минимальный вариант: только Telegram-бот (демо)
 Если нужен только бот, который ходит к уже развёрнутому агенту:
 ```bash
@@ -80,7 +89,7 @@ uv run python -m telegram_bot  # или docker build && docker run --env-file .e
 MCP:
 ```bash
 REGISTRY=mcp-gitlab-server.cr.cloud.ru IMAGE_NAME=mcp-gitlab-server TAG=latest \
-./publish-mcp-gitlab-server.sh
+./publish-mcp-server.sh
 ```
 Агент:
 ```bash
