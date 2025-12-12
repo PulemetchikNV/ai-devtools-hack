@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Сборка и пуш образа mcp-gitlab-server в реестр.
+# Сборка и пуш образа mcp сервера в реестр.
 # Настраиваем через переменные:
 #   REGISTRY   (по умолчанию mcp-gitlab-server.cr.cloud.ru)
 #   IMAGE_NAME (по умолчанию mcp-gitlab-server)

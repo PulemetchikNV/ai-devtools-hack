@@ -46,6 +46,15 @@ export interface GitLabMergeRequest {
   projectPath: string;
 }
 
+export interface GitLabMrChange {
+  oldPath: string;
+  newPath: string;
+  diff: string;
+  newFile?: boolean;
+  renamedFile?: boolean;
+  deletedFile?: boolean;
+}
+
 export interface GitLabMergeRequestDetails extends GitLabMergeRequest {
   diffStats?: {
     additions: number;
@@ -66,6 +75,7 @@ export interface GitLabMergeRequestDetails extends GitLabMergeRequest {
   workInProgress?: boolean;
   labels: string[];
   milestone?: string | null;
+  changes?: GitLabMrChange[];
 }
 
 export interface GitLabPipeline {
@@ -309,7 +319,8 @@ export class GitLabService {
     gitlabUrl: string,
     accessToken: string,
     projectPath: string,
-    mrIid: number
+    mrIid: number,
+    includeChanges = false
   ): Promise<GitLabMergeRequestDetails> {
     logger.debug('GitLab', `Getting MR details for ${projectPath}!${mrIid}`);
 
@@ -318,8 +329,9 @@ export class GitLabService {
     // Get MR details
     const mr = await client.MergeRequests.show(projectPath, mrIid);
 
-    // Get diff stats using direct HTTP request
+    // Get diff stats (and optionally full changes) using direct HTTP request
     let diffStats;
+    let changes;
     try {
       const encodedProjectPath = encodeURIComponent(projectPath);
       const changesUrl = `${gitlabUrl}/api/v4/projects/${encodedProjectPath}/merge_requests/${mrIid}/changes`;
@@ -352,6 +364,17 @@ export class GitLabService {
           total: stats.additions + stats.deletions,
           filesChanged: stats.filesChanged,
         };
+
+        if (includeChanges) {
+          changes = (changesData.changes || []).map((change: any) => ({
+            oldPath: change.old_path,
+            newPath: change.new_path,
+            diff: change.diff,
+            newFile: change.new_file,
+            renamedFile: change.renamed_file,
+            deletedFile: change.deleted_file,
+          })) as GitLabMrChange[];
+        }
       }
     } catch (error) {
       logger.warn('GitLab', `Failed to get diff stats: ${error}`);
@@ -423,6 +446,7 @@ export class GitLabService {
       workInProgress: (mr as any).work_in_progress || false,
       labels: (mr as any).labels || [],
       milestone: (mr as any).milestone?.title || null,
+      changes,
     };
   }
 

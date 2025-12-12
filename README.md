@@ -4,7 +4,7 @@
 
 ## Состав решения
 - `mcp-gitlab-server` — MCP/REST сервер для GitLab, Prisma + Postgres.
-- `gitlab-agent` — LangChain/A2A агент, использует MCP инструменты.
+- `base-agent` — LangChain/A2A агент, использует MCP инструменты.
 - `telegram-bot` — бот, обращается к агенту через A2A HTTP.
 - `docker-compose.mcp.yml` — Postgres + MCP.
 - `docker-compose.yml` — агент + Telegram-бот.
@@ -31,7 +31,7 @@
 | Агент | `PHOENIX_ENDPOINT`, `ENABLE_PHOENIX` | Телеметрия (опц.) |
 | Бот | `TELEGRAM_BOT_TOKEN` | Токен BotFather |
 | Бот | `ADMIN_CHAT_ID` | ID администратора для оповещений |
-| Бот | `A2A_AGENT_URL` | URL агента (по умолчанию http://gitlab-agent:10000) |
+| Бот | `A2A_AGENT_URL` | URL агента (по умолчанию http://base-agent:10000) |
 | Образы | `REGISTRY`, `IMAGE_NAME`, `TAG` | Для `publish-*.sh` скриптов |
 
 Примеры смотрите в `.env.example` (корень и подпроекты) и `docker-compose*.yml`.
@@ -84,7 +84,7 @@ REGISTRY=mcp-gitlab-server.cr.cloud.ru IMAGE_NAME=mcp-gitlab-server TAG=latest \
 ```
 Агент:
 ```bash
-REGISTRY=gitlab-agent.cr.cloud.ru IMAGE_NAME=gitlab-agent TAG=latest \
+REGISTRY=base-agent.cr.cloud.ru IMAGE_NAME=base-agent TAG=latest \
 ./publish-agent.sh
 ```
 Telegram-бот (пример вручную):
@@ -104,7 +104,7 @@ docker buildx build --platform linux/amd64 \
   ```
 - Агент:
   ```bash
-  cd gitlab-agent
+  cd base-agent
   uv sync  # или pip install -r requirements
   uv run python -m src.start_a2a
   ```
@@ -117,7 +117,7 @@ docker buildx build --platform linux/amd64 \
 
 ## Файлы Compose
 - `docker-compose.mcp.yml`: Postgres + MCP (порты 5432, 3000). Можно подставить готовый образ MCP через переменную `image` вместо `build`.
-- `docker-compose.yml`: агент (порт 10000) + бот, связываются по внутренней сети; бот берёт агент из `A2A_AGENT_URL` (по умолчанию http://gitlab-agent:10000).
+- `docker-compose.yml`: агент (порт 10000) + бот, связываются по внутренней сети; бот берёт агент из `A2A_AGENT_URL` (по умолчанию http://base-agent:10000).
 
 ## Проверка и отладка
 - Логи: `docker compose -f <file> logs -f <service>`.

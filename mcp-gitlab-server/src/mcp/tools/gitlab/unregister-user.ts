@@ -1,6 +1,6 @@
-import { chatConfigService } from '../../services/chat-config.service.js';
+import { chatConfigService } from '../../../services/chat-config.service.js';
 import { UnregisterUserInputSchema, unregisterUserJsonSchema } from './schemas.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../utils/logger.js';
 
 export const unregisterUserTool = {
   name: 'unregister_user',

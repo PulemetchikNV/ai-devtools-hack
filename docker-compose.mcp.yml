@@ -34,6 +34,7 @@ services:
       API_KEY: ${API_KEY:-dev-api-key-change-in-production}
       DEFAULT_GITLAB_URL: http://localhost:80
       DEFAULT_GITLAB_TOKEN: access-token
+      AGENT_NAME: ${AGENT_NAME:-GitLab}
     depends_on:
       db:
         condition: service_healthy

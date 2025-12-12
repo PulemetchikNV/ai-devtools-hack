@@ -1,9 +1,9 @@
 services:
-  gitlab-agent:
+  base-agent:
     build:
-      context: ./gitlab-agent
+      context: ./base-agent
       dockerfile: Dockerfile
-    container_name: gitlab-agent
+    container_name: base-agent
     ports:
       - "${AGENT_PORT:-10000}:10000"
     environment:
@@ -17,7 +17,7 @@ services:
       - AGENT_VERSION=${AGENT_VERSION:-v1.0.0}
       - AGENT_SYSTEM_PROMPT=${AGENT_SYSTEM_PROMPT:-Ты полезный AI-ассистент. Используй доступные инструменты для решения задач пользователя.}
       # A2A Configuration
-      - URL_AGENT=http://gitlab-agent:10000
+      - URL_AGENT=http://base-agent:10000
       - PORT=10000
       # MCP Configuration (optional)
       - MCP_URL=${MCP_URL:-}
@@ -42,9 +42,9 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - ADMIN_CHAT_ID=${ADMIN_CHAT_ID:-1234567890}
-      # A2A Agent URL - points to gitlab-agent service
-      - A2A_AGENT_URL=${A2A_AGENT_URL:-http://gitlab-agent:10000}
+      # A2A Agent URL - points to base-agent service
+      - A2A_AGENT_URL=${A2A_AGENT_URL:-http://base-agent:10000}
     depends_on:
-      - gitlab-agent
+      - base-agent
         # condition: service_healthy
     restart: unless-stopped

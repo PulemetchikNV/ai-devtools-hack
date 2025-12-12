@@ -1,14 +1,18 @@
-import { registerUserTool } from './register-user.js';
-import { updateUserCredentialsTool } from './update-user-credentials.js';
-import { getUserInfoTool } from './get-user-info.js';
-import { unregisterUserTool } from './unregister-user.js';
-import { listProjectsTool } from './list-projects.js';
-import { listMergeRequestsTool } from './list-merge-requests.js';
-import { getMrDetailsTool } from './get-mr-details.js';
-import { getPipelineStatusTool } from './get-pipeline-status.js';
-import { retryPipelineTool } from './retry-pipeline.js';
-import { listIssuesTool } from './list-issues.js';
-import { createIssueTool } from './create-issue.js';
+import { registerUserTool } from './gitlab/register-user.js';
+import { updateUserCredentialsTool } from './gitlab/update-user-credentials.js';
+import { getUserInfoTool } from './gitlab/get-user-info.js';
+import { unregisterUserTool } from './gitlab/unregister-user.js';
+import { listProjectsTool } from './gitlab/list-projects.js';
+import { listMergeRequestsTool } from './gitlab/list-merge-requests.js';
+import { getMrDetailsTool } from './gitlab/get-mr-details.js';
+import { getPipelineStatusTool } from './gitlab/get-pipeline-status.js';
+import { retryPipelineTool } from './gitlab/retry-pipeline.js';
+import { listIssuesTool } from './gitlab/list-issues.js';
+import { createIssueTool } from './gitlab/create-issue.js';
+import { reviewPatchTool } from './code-review/review-patch.js';
+import { suggestTestsTool } from './code-review/suggest-tests.js';
+import { config } from '../../config.js';
+import { AGENT_NAMES } from '../../const.js';
 
 /**
  * Registry of all available MCP tools
@@ -28,7 +32,7 @@ import { createIssueTool } from './create-issue.js';
  * - list_issues: List issues for a project
  * - create_issue: Create a new issue in a project
  */
-export const tools = [
+const gitlabTools = [
   // User management
   registerUserTool,
   updateUserCredentialsTool,
@@ -44,6 +48,15 @@ export const tools = [
   listIssuesTool,
   createIssueTool,
 ];
+
+const codeReviewTools = [
+  reviewPatchTool,
+  suggestTestsTool,
+];
+
+export const tools = config.agentName === AGENT_NAMES.CODE_REVIEW ? 
+  [...codeReviewTools] : [...gitlabTools]
+
 
 /**
  * Get tool by name

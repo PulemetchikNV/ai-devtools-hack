@@ -1,7 +1,7 @@
-import { gitlabService } from '../../services/gitlab.service.js';
-import { chatConfigService } from '../../services/chat-config.service.js';
+import { gitlabService } from '../../../services/gitlab.service.js';
+import { chatConfigService } from '../../../services/chat-config.service.js';
 import { GetMrDetailsInputSchema, getMrDetailsJsonSchema } from './schemas.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../utils/logger.js';
 
 /**
  * MCP Tool: get_mr_details

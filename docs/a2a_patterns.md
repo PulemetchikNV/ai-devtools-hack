@@ -348,7 +348,7 @@ User sees progress in real-time
 | Компонент | Путь |
 |-----------|------|
 | Streaming Agent | `a2a-samples/samples/python/agents/a2a_mcp/src/a2a_mcp/agents/adk_travel_agent.py` |
-| Stream Handler | `gitlab-agent/src/a2a_wrapper.py` |
+| Stream Handler | `base-agent/src/a2a_wrapper.py` |
 
 ### Ключевой код
 

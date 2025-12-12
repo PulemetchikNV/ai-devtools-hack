@@ -1,7 +1,7 @@
-import { gitlabService } from '../../services/gitlab.service.js';
-import { chatConfigService } from '../../services/chat-config.service.js';
+import { gitlabService } from '../../../services/gitlab.service.js';
+import { chatConfigService } from '../../../services/chat-config.service.js';
 import { ListProjectsInputSchema, listProjectsJsonSchema } from './schemas.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../utils/logger.js';
 
 export const listProjectsTool = {
   name: 'list_projects',

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import { AGENT_NAMES } from './const';
 
 // Load .env file
 dotenv.config();
@@ -14,6 +15,7 @@ const envSchema = z.object({
   // Optional: Default GitLab credentials for testing
   DEFAULT_GITLAB_URL: z.string().optional(),
   DEFAULT_GITLAB_TOKEN: z.string().optional(),
+  AGENT_NAME: z.enum([AGENT_NAMES.GITLAB, AGENT_NAMES.CODE_REVIEW]).optional(),
 });
 
 function loadConfig() {
@@ -37,6 +39,7 @@ function loadConfig() {
     // Optional defaults for testing
     defaultGitlabUrl: result.data.DEFAULT_GITLAB_URL,
     defaultGitlabToken: result.data.DEFAULT_GITLAB_TOKEN,
+    agentName: result.data?.AGENT_NAME || AGENT_NAMES.GITLAB,
   };
 }
 

@@ -1,6 +1,6 @@
-import { chatConfigService } from '../../services/chat-config.service.js';
+import { chatConfigService } from '../../../services/chat-config.service.js';
 import { GetUserInfoInputSchema, getUserInfoJsonSchema } from './schemas.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../utils/logger.js';
 
 export const getUserInfoTool = {
   name: 'get_user_info',

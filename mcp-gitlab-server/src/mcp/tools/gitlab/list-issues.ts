@@ -1,28 +1,28 @@
-import { gitlabService } from '../../services/gitlab.service.js';
-import { chatConfigService } from '../../services/chat-config.service.js';
-import { CreateIssueInputSchema, createIssueJsonSchema } from './schemas.js';
-import { logger } from '../../utils/logger.js';
+import { gitlabService } from '../../../services/gitlab.service.js';
+import { chatConfigService } from '../../../services/chat-config.service.js';
+import { ListIssuesInputSchema, listIssuesJsonSchema } from '../schemas.js';
+import { logger } from '../../../utils/logger.js';
 
 /**
- * MCP Tool: create_issue
+ * MCP Tool: list_issues
  * 
- * Creates a new issue in a GitLab project.
+ * Lists issues from a GitLab project.
+ * Can filter by state, assignee, labels, and search query.
  * 
  * Use cases:
- * - "Create a bug report in project X"
- * - "Add a task: implement dark mode"
- * - "Create an issue and assign to john"
+ * - "Show open issues in project X"
+ * - "What issues are assigned to me?"
+ * - "Find bugs with high-priority label"
  */
-export const createIssueTool = {
-  name: 'create_issue',
+export const listIssuesTool = {
+  name: 'list_issues',
   description:
-    'Create a new issue in a GitLab project. ' +
-    'You can specify title, description (Markdown supported), labels, and assignee. ' +
-    'Returns the created issue details including URL.',
-  inputSchema: createIssueJsonSchema,
+    'List issues from a GitLab project. Can filter by state (opened/closed), assignee, labels, and search query. ' +
+    'Useful for tracking tasks, bugs, and feature requests.',
+  inputSchema: listIssuesJsonSchema,
 
   async handler(args: unknown) {
-    const parseResult = CreateIssueInputSchema.safeParse(args);
+    const parseResult = ListIssuesInputSchema.safeParse(args);
 
     if (!parseResult.success) {
       return {
@@ -37,14 +37,14 @@ export const createIssueTool = {
       };
     }
 
-    const { chat_id, project_path, title, description, labels, assignee } = parseResult.data;
+    const { chat_id, project_path, state, assignee, labels, search, per_page } = parseResult.data;
 
     try {
       // Get user credentials from database
       const userConfig = await chatConfigService.getWithCredentials(chat_id);
 
       if (!userConfig) {
-        logger.warn('CreateIssue', `User ${chat_id} not registered`);
+        logger.warn('ListIssues', `User ${chat_id} not registered`);
         return {
           content: [{
             type: 'text' as const,
@@ -57,34 +57,42 @@ export const createIssueTool = {
         };
       }
 
-      // Create issue
-      const issue = await gitlabService.createIssue(
+      // Fetch issues
+      const issues = await gitlabService.listIssues(
         userConfig.gitlabUrl,
         userConfig.accessToken,
         {
           projectPath: project_path,
-          title,
-          description,
+          state,
+          assignee,
           labels,
-          assigneeUsername: assignee,
+          search,
+          perPage: per_page,
         }
       );
 
       const response = {
-        success: true,
-        message: `Issue #${issue.iid} created successfully`,
-        issue: {
+        total: issues.length,
+        project_path,
+        filters: {
+          state,
+          assignee: assignee || 'all',
+          labels: labels || [],
+          search: search || null,
+        },
+        issues: issues.map(issue => ({
           id: issue.id,
           iid: issue.iid,
           title: issue.title,
-          description: issue.description,
           state: issue.state,
           author: issue.author,
           assignees: issue.assignees,
           labels: issue.labels,
           url: issue.url,
           created_at: issue.createdAt,
-        },
+          updated_at: issue.updatedAt,
+          closed_at: issue.closedAt,
+        })),
       };
 
       return {
@@ -96,7 +104,7 @@ export const createIssueTool = {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CreateIssue', `Failed to create issue: ${errorMessage}`, {
+      logger.error('ListIssues', `Failed to fetch issues: ${errorMessage}`, {
         error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
       });
@@ -106,7 +114,7 @@ export const createIssueTool = {
           type: 'text' as const,
           text: JSON.stringify({
             error: 'GITLAB_ERROR',
-            message: `Error creating issue: ${errorMessage}`,
+            message: `Error fetching issues: ${errorMessage}`,
           }, null, 2),
         }],
         isError: true,

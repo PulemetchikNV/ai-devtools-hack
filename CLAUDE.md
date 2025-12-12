@@ -5,13 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 AI DevTools Hack — a GitLab assistant with three components communicating via A2A and MCP protocols:
-1. **telegram-bot** — Telegram UI, sends user messages to gitlab-agent via A2A HTTP
-2. **gitlab-agent** — LangChain agent with A2A server, consumes MCP tools from mcp-gitlab-server
+1. **telegram-bot** — Telegram UI, sends user messages to base-agent via A2A HTTP
+2. **base-agent** — LangChain agent with A2A server, consumes MCP tools from mcp-gitlab-server
 3. **mcp-gitlab-server** — TypeScript MCP/REST server for GitLab API, uses Prisma + PostgreSQL
 
 ## Tech Stack
 
-- **Python 3.12** — telegram-bot, gitlab-agent
+- **Python 3.12** — telegram-bot, base-agent
 - **Node.js 20+** — mcp-gitlab-server
 - **uv** — Python package manager for both Python components
 - **aiogram 3.x** — Telegram bot framework
@@ -33,7 +33,7 @@ npx prisma generate && npx prisma db push
 npm run dev
 
 # Agent
-cd gitlab-agent
+cd base-agent
 uv sync
 uv run python -m src.start_a2a
 
@@ -60,7 +60,7 @@ docker compose -f docker-compose.yml up -d
 REGISTRY=mcp-gitlab-server.cr.cloud.ru IMAGE_NAME=mcp-gitlab-server TAG=latest ./publish-mcp-gitlab-server.sh
 
 # Agent
-REGISTRY=gitlab-agent.cr.cloud.ru IMAGE_NAME=gitlab-agent TAG=latest ./publish-agent.sh
+REGISTRY=base-agent.cr.cloud.ru IMAGE_NAME=base-agent TAG=latest ./publish-agent.sh
 ```
 
 ### MCP Server Scripts
@@ -80,7 +80,7 @@ npm run typecheck     # TypeScript check without emit
 ### Communication Flow
 
 ```
-User → Telegram Bot → (A2A HTTP) → gitlab-agent → (MCP JSON-RPC/SSE) → mcp-gitlab-server → GitLab API
+User → Telegram Bot → (A2A HTTP) → base-agent → (MCP JSON-RPC/SSE) → mcp-gitlab-server → GitLab API
 ```
 
 ### mcp-gitlab-server (TypeScript)
@@ -92,7 +92,7 @@ User → Telegram Bot → (A2A HTTP) → gitlab-agent → (MCP JSON-RPC/SSE) →
 - `src/services/chat-config.service.ts` — Chat config CRUD with encrypted tokens
 - `prisma/schema.prisma` — ChatConfig model for per-chat GitLab credentials
 
-### gitlab-agent (Python)
+### base-agent (Python)
 
 - `src/start_a2a.py` — Entry point, creates A2A server with uvicorn
 - `src/agent.py` — LangChain AgentExecutor with MCP client that converts MCP tools to LangChain Tools
@@ -104,7 +104,7 @@ Key pattern: `MCPClient` class connects to MCP servers via Streamable HTTP (JSON
 ### telegram-bot (Python)
 
 - `src/__main__.py` — aiogram Bot + Dispatcher with MemoryStorage
-- `src/a2a_client.py` — A2A client using a2a-sdk, sends messages to gitlab-agent
+- `src/a2a_client.py` — A2A client using a2a-sdk, sends messages to base-agent
 - `src/handlers/users.py` — Message handlers with FSM states
 - `src/user_service.py` — User registration flow via MCP REST API
 - `src/config.py` — Settings via pydantic-settings
@@ -122,7 +122,7 @@ Key pattern: `MCPClient` class connects to MCP servers via Streamable HTTP (JSON
 | Agent | `AGENT_SYSTEM_PROMPT` | System prompt for agent |
 | Agent | `PORT`, `URL_AGENT` | A2A server config |
 | Bot | `TELEGRAM_BOT_TOKEN` | BotFather token |
-| Bot | `A2A_AGENT_URL` | Agent URL (default http://gitlab-agent:10000) |
+| Bot | `A2A_AGENT_URL` | Agent URL (default http://base-agent:10000) |
 | Bot | `ADMIN_CHAT_ID` | Optional admin notifications |
 
 ## Verification Endpoints

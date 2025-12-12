@@ -1,0 +1,73 @@
+{
+  "name": "code-review-assistant",
+  "description": "Code Review MCP: анализ диффов, подсказки по тестам.",
+  "schema_version": "1.0",
+  "tools": [
+    {
+      "name": "review_patch",
+      "description": "Легкий code review: принимает unified diff или массив changes из GitLab, возвращает summary/риски/находки.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string", "description": "Опционально: chat ID для аудита" },
+          "project_path": { "type": "string", "description": "Опционально: путь проекта (group/project)" },
+          "mr_iid": { "type": "number", "description": "Опционально: IID MR" },
+          "patch": { "type": "string", "description": "Unified diff (если нет changes)" },
+          "changes": {
+            "type": "array",
+            "description": "Массив GitLab changes (old_path, new_path, diff, flags)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "old_path": { "type": "string" },
+                "new_path": { "type": "string" },
+                "diff": { "type": "string" },
+                "new_file": { "type": "boolean" },
+                "renamed_file": { "type": "boolean" },
+                "deleted_file": { "type": "boolean" }
+              },
+              "required": ["old_path", "new_path", "diff"]
+            }
+          },
+          "max_findings": { "type": "number", "minimum": 1, "maximum": 200, "default": 50 },
+          "focus_paths": { "type": "array", "items": { "type": "string" }, "description": "Рассматривать только эти пути" },
+          "exclude_paths": { "type": "array", "items": { "type": "string" }, "description": "Пропустить эти пути" }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "suggest_tests",
+      "description": "Формирует чеклист тестов по диффу или changes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chat_id": { "type": "string", "description": "Опционально: chat ID для аудита" },
+          "project_path": { "type": "string", "description": "Опционально: путь проекта (group/project)" },
+          "mr_iid": { "type": "number", "description": "Опционально: IID MR" },
+          "patch": { "type": "string", "description": "Unified diff (если нет changes)" },
+          "changes": {
+            "type": "array",
+            "description": "Массив GitLab changes (old_path, new_path, diff, flags)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "old_path": { "type": "string" },
+                "new_path": { "type": "string" },
+                "diff": { "type": "string" },
+                "new_file": { "type": "boolean" },
+                "renamed_file": { "type": "boolean" },
+                "deleted_file": { "type": "boolean" }
+              },
+              "required": ["old_path", "new_path", "diff"]
+            }
+          },
+          "max_items": { "type": "number", "minimum": 1, "maximum": 100, "default": 20 },
+          "focus_paths": { "type": "array", "items": { "type": "string" }, "description": "Рассматривать только эти пути" },
+          "exclude_paths": { "type": "array", "items": { "type": "string" }, "description": "Пропустить эти пути" }
+        },
+        "required": []
+      }
+    }
+  ]
+}
