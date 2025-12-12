@@ -30,8 +30,39 @@ async def cmd_help(message: Message):
 @router.message(Command("reset"))
 async def reset_handler(message: Message):
     """Обработчик команды /reset - сброс контекста диалога"""
-    await message.answer(RESET_MESSAGE)
-    logger.info(f"User {message.from_user.id} (chat {message.chat.id}) requested context reset")
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    logger.info(f"User {user_id} (chat {chat_id}) requested context reset")
+
+    await message.bot.send_chat_action(chat_id=chat_id, action="typing")
+
+    try:
+        if settings.a2a_agent_url:
+            context_id = str(chat_id)
+            user_info = {
+                "telegram_id": user_id,
+                "username": message.from_user.username,
+                "first_name": message.from_user.first_name,
+                "last_name": message.from_user.last_name,
+            }
+
+            ai_response, _ = await agent_client.send_message(
+                message="Выполни команду: разрегистрировать пользователя и очистить все данные",
+                user_info=user_info,
+                context_id=context_id,
+            )
+
+            await message.answer(ai_response, parse_mode="Markdown", disable_web_page_preview=True)
+            logger.info(f"Reset completed for user {user_id}")
+        else:
+            await message.answer(RESET_MESSAGE)
+
+    except Exception as e:
+        logger.error(f"Error resetting context for user {user_id}: {e}", exc_info=True)
+        await message.answer(
+            "Произошла ошибка при сбросе контекста. Попробуйте еще раз."
+        )
 
 
 @router.message(F.text)
